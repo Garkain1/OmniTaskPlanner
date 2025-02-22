@@ -1,0 +1,165 @@
+// 📌 Tabelle der Benutzer (User)
+// Enthält Informationen über registrierte Benutzer der Plattform.
+Table users_user {
+  id                  UUID [primary key, not null, default: `gen_random_uuid()`, note: "Eindeutiger Identifikator des Benutzers (wird automatisch generiert)"]
+  username            VARCHAR(50) [unique, not null, note: "Benutzername (eindeutig, mindestens 3 Zeichen)"]
+  email               VARCHAR(100) [unique, not null, note: "E-Mail des Benutzers (eindeutig, wird für die Authentifizierung verwendet)"]
+  password            VARCHAR(128) [not null, note: "Gehashtes Passwort des Benutzers"]
+  status              SMALLINT [not null, default: 0, note: "Kontostatus (0 - ausstehend, 1 - aktiv, 2 - deaktiviert, 3 - gelöscht (Soft-Löschung)). CHECK(status IN (0,1,2,3))"]
+  status_changed_at   TIMESTAMPTZ [not null, default: `CURRENT_TIMESTAMP`, note: "Datum der letzten Statusänderung des Benutzers"]
+  is_staff            BOOLEAN [default: false, note: "Flag für den Zugang zum Administrationsbereich"]
+  created_at          TIMESTAMPTZ [default: `CURRENT_TIMESTAMP`, note: "Datum und Uhrzeit der Kontoerstellung"]
+  last_login          TIMESTAMPTZ [null, note: "Datum und Uhrzeit der letzten Anmeldung des Benutzers"]
+
+  // 🔍 Indizes zur Optimierung der Abfragen
+  Indexes {
+    (username) // 🔍 Schnellsuche nach Benutzername
+    (email) // 🔍 Schnellsuche nach E-Mail (für die Anmeldung)
+    (status) // 🔍 Optimierung der Filterung nach Kontostatus
+  }
+}
+
+// 📌 Tabelle der Benutzergruppen (Rollen)
+// Enthält eine Liste von Rollen, die die Zugriffsrechte der Benutzer definieren (z. B. "Admin", "Manager", "User").
+Table auth_group {
+  id    SERIAL [primary key, note: "Eindeutiger Identifikator der Gruppe (Autoinkrement)"]
+  name  VARCHAR(150) [unique, not null, note: "Name der Gruppe (eindeutig, z. B. 'Admin', 'Manager', 'User')"]
+}
+
+// 📌 Tabelle der Berechtigungen
+// Definiert Aktionen, die von Benutzern mit bestimmten Rollen durchgeführt werden können.
+Table auth_permission {
+  id               SERIAL [primary key, note: "Eindeutiger Identifikator der Berechtigung (Autoinkrement)"]
+  name             VARCHAR(255) [not null, note: "Lesbarer Name der Berechtigung (z. B. 'Aufgabe hinzufügen')"]
+  codename         VARCHAR(100) [unique, not null, note: "Eindeutiger Code der Berechtigung für die API (z. B. 'add_task')"]
+  content_type_id  INTEGER [not null, ref: > django_content_type.id, note: "Verknüpfung mit dem Content-Modell (welcher Entität die Berechtigung zugeordnet ist)"]
+}
+
+// 📌 Verbindungstabelle Benutzer und Gruppen (User - Group)
+// Stellt eine Viele-zu-Viele-Beziehung zwischen Benutzern und Gruppen her (ein Benutzer kann mehreren Gruppen angehören).
+Table users_user_groups {
+  user_id  UUID [ref: > users_user.id, note: "Verweis auf den Benutzer. ON DELETE CASCADE"]
+  group_id INT [ref: > auth_group.id, note: "Verweis auf die Gruppe. ON DELETE CASCADE"]
+
+  Indexes {
+    (user_id, group_id) [unique, note: "Verhindert doppelte Zuordnungen zwischen einem Benutzer und derselben Gruppe"]
+  }
+}
+
+// 📌 Verbindungstabelle Gruppen und Berechtigungen (Group - Permission)
+// Definiert, welche Berechtigungen jeder Benutzergruppe zugewiesen sind.
+Table auth_group_permissions {
+  group_id      INT [ref: > auth_group.id, note: "Verweis auf die Gruppe. ON DELETE CASCADE"]
+  permission_id INT [ref: > auth_permission.id, note: "Verweis auf die Berechtigung. ON DELETE CASCADE"]
+
+  Indexes {
+    (group_id, permission_id) [unique, note: "Verhindert doppelte Zuordnungen zwischen einer Gruppe und derselben Berechtigung"]
+  }
+}
+
+// 📌 Verbindungstabelle Benutzer und Berechtigungen (User - Permission)
+// Definiert individuelle Berechtigungen, die jedem Benutzer zugewiesen werden.
+// Ergänzt auth_group_permissions, indem Berechtigungen direkt an Benutzer vergeben werden können.
+Table users_user_user_permissions {
+  user_id       UUID [ref: > users_user.id, note: "ID des Benutzers, dem die Berechtigung zugewiesen wird. ON DELETE CASCADE"]
+  permission_id INT [ref: > auth_permission.id, note: "ID der dem Benutzer zugewiesenen Berechtigung. ON DELETE CASCADE"]
+
+  Indexes {
+    (user_id, permission_id) [unique, note: "Verhindert doppelte Zuordnungen zwischen einem Benutzer und derselben Berechtigung"]
+  }
+}
+
+// 📌 Tabelle der Content-Typen zur Verknüpfung von Berechtigungen
+// Wird verwendet, um Modelle zu definieren, auf die Berechtigungen angewendet werden können.
+Table django_content_type {
+  id         SERIAL [primary key, note: "Eindeutiger Identifikator des Content-Typs (Autoinkrement)"]
+  app_label  VARCHAR(100) [not null, note: "Name der Anwendung, zu der das Modell gehört (z. B. 'tasks')"]
+  model      VARCHAR(100) [not null, note: "Name des Modells in dieser Anwendung (z. B. 'Task')"]
+
+  Indexes {
+    (app_label, model) [unique, note: "Stellt die Einzigartigkeit der Kombination aus Anwendung und Modell sicher"]
+  }
+}
+
+// 📌 Tabelle der Aufgaben (Task)
+// Speichert die Liste der Aufgaben, ihre Attribute und Verknüpfungen mit dem Benutzer, Kategorien und Unteraufgaben.
+Table Task {
+  id             UUID [primary key, not null, note: "Eindeutiger Identifikator der Aufgabe"]
+  user_id        UUID [not null, ref: > users_user.id, note: "Benutzer, der die Aufgabe erstellt hat. ON DELETE CASCADE"]
+  title          VARCHAR(150) [not null, note: "Titel der Aufgabe (bis zu 150 Zeichen)"]
+  description    TEXT [null, note: "Beschreibung der Aufgabe (kann leer sein)"]
+  parent_task_id UUID [ref: > Task.id, null, note: "ID der übergeordneten Aufgabe (falls es sich um eine Unteraufgabe handelt). ON DELETE CASCADE"]
+  status         SMALLINT [not null, default: 0, note: "Aufgabenstatus (0 - Inbox, 1 - To Do, 2 - In Progress, 3 - Done, 4 - Archived). CHECK(status IN (0,1,2,3,4))"]
+  category_id    INTEGER [ref: > Category.id, null, note: "ID der Aufgaben-Kategorie. NULL = Inbox. ON DELETE SET NULL"]
+  due_date       TIMESTAMPTZ [null, note: "Fälligkeitsdatum der Aufgabe (kann fehlen)"]
+  sort_order     SMALLINT [not null, note: "Position der Aufgabe in der Liste (für Drag & Drop). Schritt 10. CHECK(sort_order >= 0)."]
+  importance     SMALLINT [not null, default: 2, note: "Priorität der Aufgabe gemäß MoSCoW (1 - Must Have, 2 - Should Have, 3 - Could Have, 4 - Won't Have). CHECK(importance BETWEEN 1 AND 4)"]
+  urgency        BOOLEAN [default: false, not null, note: "Dringlichkeitsflag (true - Dringend, false - Nicht dringend)"]
+  reach          SMALLINT [not null, default: 3, note: "Reichweite der Aufgabe gemäß RICE (1 - Sehr niedrig, 2 - Niedrig, 3 - Mittel, 4 - Hoch, 5 - Sehr hoch). CHECK(reach BETWEEN 1 AND 5)"]
+  confidence     SMALLINT [not null, default: 3, note: "Vertrauen in die Aufgabe gemäß RICE (1 - Sehr niedrig, 2 - Niedrig, 3 - Mittel, 4 - Hoch, 5 - Sehr hoch). CHECK(confidence BETWEEN 1 AND 5)"]
+  effort         SMALLINT [not null, default: 3, note: "Aufwand gemäß RICE (1 - Sehr niedrig, 2 - Niedrig, 3 - Mittel, 4 - Hoch, 5 - Sehr hoch). CHECK(effort BETWEEN 1 AND 5)"]
+  created_at     TIMESTAMPTZ [not null, note: "Erstellungsdatum der Aufgabe"]
+  updated_at     TIMESTAMPTZ [not null, default: `CURRENT_TIMESTAMP`, note: "Wird automatisch bei jeder Änderung aktualisiert"]
+  is_deleted     BOOLEAN [default: false, not null, note: "Soft-Lösch-Flag (true - Aufgabe gelöscht, false - Aktiv)"]
+
+  // 🔍 Indizes zur Optimierung der Suche und Sortierung
+  Indexes {
+    (user_id, category_id) // Schnellsuche nach Aufgaben anhand von Benutzer und Kategorie
+    (status) [note: "Partial Index WHERE is_deleted = false"] // Beschleunigt die Filterung nach Status für aktive Aufgaben
+    (importance) [note: "Partial Index WHERE is_deleted = false"] // Filterung nach Wichtigkeitsgrad
+    (due_date) [note: "Partial Index WHERE is_deleted = false"] // Optimiert die Suche nach Fälligkeitsdatum
+    (sort_order) [note: "Partial Index WHERE is_deleted = false"] // Optimiert das Drag & Drop Sortieren
+  }
+}
+
+// 📌 Tabelle der Kategorien (Category)
+// Speichert benutzerdefinierte Kategorien, die helfen, Aufgaben sinngemäß zu gruppieren.
+Table Category {
+  id          SERIAL [primary key, note: "Eindeutiger Identifikator der Kategorie (Autoinkrement)"]
+  user_id     UUID [ref: > users_user.id, not null, note: "Besitzer der Kategorie. ON DELETE CASCADE"]
+  name        VARCHAR(50) [not null, note: "Name der Kategorie (bis zu 50 Zeichen)"]
+  description TEXT [null, note: "Zusätzliche Beschreibung der Kategorie"]
+  color       VARCHAR(7) [not null, note: "HEX-Farbcode der Kategorie (#RRGGBB). Validierung auf Applikationsebene"]
+  sort_order  SMALLINT [not null, note: "Position der Aufgabe in der Liste (für Drag & Drop). Schritt 10. CHECK(sort_order >= 0)."]
+
+  // 🔍 Indizes zur Optimierung der Suche
+  Indexes {
+    (user_id, name) [unique, note: "Jeder Kategoriename ist innerhalb eines Benutzers eindeutig"]
+  }
+}
+
+// 📌 Tabelle der Tags (Tag)
+// Speichert benutzerdefinierte Tags für eine flexible Filterung der Aufgaben.
+Table Tag {
+  id          SERIAL [primary key, note: "Eindeutiger Identifikator des Tags (Autoinkrement)"]
+  user_id     UUID [ref: > users_user.id, not null, note: "Besitzer des Tags. ON DELETE CASCADE"]
+  name        VARCHAR(50) [not null, note: "Name des Tags (bis zu 50 Zeichen)"]
+  description TEXT [null, note: "Zusätzliche Beschreibung des Tags"]
+  color       VARCHAR(7) [not null, note: "HEX-Farbcode des Tags (#RRGGBB). Validierung auf Applikationsebene"]
+
+  // 🔍 Indizes zur Optimierung der Suche
+  Indexes {
+    (user_id, name) [unique, note: "Jeder Tag-Name ist innerhalb eines Benutzers eindeutig"]
+  }
+}
+
+// 📌 Verbindungstabelle Aufgaben und Tags (Task - Tag)
+// Stellt eine Viele-zu-Viele-Beziehung zwischen Aufgaben und Tags her.
+Table TaskTag {
+  task_id UUID [ref: > Task.id, note: "Aufgabe, der der Tag zugeordnet ist. ON DELETE CASCADE"]
+  tag_id  INTEGER [ref: > Tag.id, note: "Tag, der der Aufgabe zugeordnet ist. ON DELETE CASCADE"]
+
+  // 🔍 Indizes zur Verhinderung von Duplikaten eines Tags bei einer Aufgabe
+  Indexes {
+    (task_id, tag_id) [unique, note: "Eine Aufgabe darf denselben Tag nicht zweimal enthalten"]
+  }
+}
+
+// 📌 Tabelle der Zeitblöcke (Time Blocking)
+// Definiert Zeitintervalle für Aufgaben im Kalender.
+Table TimeBlock {
+  id          SERIAL [primary key, note: "Eindeutiger Identifikator des Zeitblocks (Autoinkrement)"]
+  task_id     UUID [not null, ref: > Task.id, note: "Zugehörige Aufgabe. ON DELETE CASCADE"]
+  start_time  TIMESTAMPTZ [not null, note: "Datum und Uhrzeit des Beginns der Arbeit an der Aufgabe"]
+  end_time    TIMESTAMPTZ [not null, note: "Datum und Uhrzeit des Endes der Arbeit an der Aufgabe"]
+}

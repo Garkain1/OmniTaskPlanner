@@ -1,0 +1,165 @@
+// 📌 User Table (User)
+// Contains information about registered users of the platform.
+Table users_user {
+  id                  UUID [primary key, not null, default: `gen_random_uuid()`, note: "Unique identifier of the user (generated automatically)"]
+  username            VARCHAR(50) [unique, not null, note: "Username (unique, minimum 3 characters)"]
+  email               VARCHAR(100) [unique, not null, note: "User email (unique, used for authentication)"]
+  password            VARCHAR(128) [not null, note: "Hashed password of the user"]
+  status              SMALLINT [not null, default: 0, note: "Account status (0 - pending, 1 - active, 2 - deactivated, 3 - deleted (soft deletion)). CHECK(status IN (0,1,2,3))"]
+  status_changed_at   TIMESTAMPTZ [not null, default: `CURRENT_TIMESTAMP`, note: "Date of the last change of the user's status"]
+  is_staff            BOOLEAN [default: false, note: "Flag for access to the administrative panel"]
+  created_at          TIMESTAMPTZ [default: `CURRENT_TIMESTAMP`, note: "Date and time of account creation"]
+  last_login          TIMESTAMPTZ [null, note: "Date and time of the user's last login"]
+
+  // 🔍 Indexes for query optimization
+  Indexes {
+    (username) // 🔍 Fast search by username
+    (email) // 🔍 Fast search by email (for login)
+    (status) // 🔍 Optimization for filtering users by status
+  }
+}
+
+// 📌 User Groups Table (Roles)
+// Contains a list of roles defining user permissions (e.g., "Admin", "Manager", "User").
+Table auth_group {
+  id    SERIAL [primary key, note: "Unique identifier of the group (auto-increment)"]
+  name  VARCHAR(150) [unique, not null, note: "Group name (unique, e.g., 'Admin', 'Manager', 'User')"]
+}
+
+// 📌 Permissions Table
+// Defines actions that can be performed by users with certain roles.
+Table auth_permission {
+  id               SERIAL [primary key, note: "Unique identifier of the permission (auto-increment)"]
+  name             VARCHAR(255) [not null, note: "Readable name of the permission (e.g., 'Add Task')"]
+  codename         VARCHAR(100) [unique, not null, note: "Unique code of the permission for the API (e.g., 'add_task')"]
+  content_type_id  INTEGER [not null, ref: > django_content_type.id, note: "Relation to the content model (to which entity the permission belongs)"]
+}
+
+// 📌 User-Group Junction Table (User - Group)
+// Establishes a many-to-many relationship between users and groups (a user can belong to multiple groups).
+Table users_user_groups {
+  user_id  UUID [ref: > users_user.id, note: "Reference to the user. ON DELETE CASCADE"]
+  group_id INT [ref: > auth_group.id, note: "Reference to the group. ON DELETE CASCADE"]
+
+  Indexes {
+    (user_id, group_id) [unique, note: "Prevents duplicate associations between a user and the same group"]
+  }
+}
+
+// 📌 Group-Permission Junction Table (Group - Permission)
+// Defines which permissions are assigned to each user group.
+Table auth_group_permissions {
+  group_id      INT [ref: > auth_group.id, note: "Reference to the group. ON DELETE CASCADE"]
+  permission_id INT [ref: > auth_permission.id, note: "Reference to the permission. ON DELETE CASCADE"]
+
+  Indexes {
+    (group_id, permission_id) [unique, note: "Prevents duplicate associations between a group and the same permission"]
+  }
+}
+
+// 📌 User-Permission Junction Table (User - Permission)
+// Defines individual permissions assigned to each user.
+// Complements auth_group_permissions by allowing permissions to be assigned directly to users.
+Table users_user_user_permissions {
+  user_id       UUID [ref: > users_user.id, note: "ID of the user to whom the permission is assigned. ON DELETE CASCADE"]
+  permission_id INT [ref: > auth_permission.id, note: "ID of the permission assigned to the user. ON DELETE CASCADE"]
+
+  Indexes {
+    (user_id, permission_id) [unique, note: "Prevents duplicate associations between a user and the same permission"]
+  }
+}
+
+// 📌 Content Types Table for Permission Linking
+// Used for defining models to which permissions may apply.
+Table django_content_type {
+  id         SERIAL [primary key, note: "Unique identifier of the content type (auto-increment)"]
+  app_label  VARCHAR(100) [not null, note: "Name of the application to which the model belongs (e.g., 'tasks')"]
+  model      VARCHAR(100) [not null, note: "Name of the model in this application (e.g., 'Task')"]
+
+  Indexes {
+    (app_label, model) [unique, note: "Ensures uniqueness of the combination of application and model"]
+  }
+}
+
+// 📌 Task Table
+// Stores the list of tasks, their attributes, and associations with the user, categories, and subtasks.
+Table Task {
+  id             UUID [primary key, not null, note: "Unique identifier of the task"]
+  user_id        UUID [not null, ref: > users_user.id, note: "User who created the task. ON DELETE CASCADE"]
+  title          VARCHAR(150) [not null, note: "Task title (up to 150 characters)"]
+  description    TEXT [null, note: "Task description (can be empty)"]
+  parent_task_id UUID [ref: > Task.id, null, note: "ID of the parent task (if this is a subtask). ON DELETE CASCADE"]
+  status         SMALLINT [not null, default: 0, note: "Task status (0 - Inbox, 1 - To Do, 2 - In Progress, 3 - Done, 4 - Archived). CHECK(status IN (0,1,2,3,4))"]
+  category_id    INTEGER [ref: > Category.id, null, note: "ID of the task category. NULL = Inbox. ON DELETE SET NULL"]
+  due_date       TIMESTAMPTZ [null, note: "Task due date (may be absent)"]
+  sort_order     SMALLINT [not null, note: "Task position in the list (for Drag & Drop). Step 10. CHECK(sort_order >= 0)."]
+  importance     SMALLINT [not null, default: 2, note: "Task priority according to MoSCoW (1 - Must Have, 2 - Should Have, 3 - Could Have, 4 - Won't Have). CHECK(importance BETWEEN 1 AND 4)"]
+  urgency        BOOLEAN [default: false, not null, note: "Urgency flag (true - Urgent, false - Non-urgent)"]
+  reach          SMALLINT [not null, default: 3, note: "Task reach according to RICE (1 - Very Low, 2 - Low, 3 - Medium, 4 - High, 5 - Very High). CHECK(reach BETWEEN 1 AND 5)"]
+  confidence     SMALLINT [not null, default: 3, note: "Task confidence according to RICE (1 - Very Low, 2 - Low, 3 - Medium, 4 - High, 5 - Very High). CHECK(confidence BETWEEN 1 AND 5)"]
+  effort         SMALLINT [not null, default: 3, note: "Effort required according to RICE (1 - Very Low, 2 - Low, 3 - Medium, 4 - High, 5 - Very High). CHECK(effort BETWEEN 1 AND 5)"]
+  created_at     TIMESTAMPTZ [not null, note: "Task creation date"]
+  updated_at     TIMESTAMPTZ [not null, default: `CURRENT_TIMESTAMP`, note: "Automatically updated with each change"]
+  is_deleted     BOOLEAN [default: false, not null, note: "Soft deletion flag (true - Task deleted, false - Active)"]
+
+  // 🔍 Indexes for search and sorting optimization
+  Indexes {
+    (user_id, category_id) // Fast search for tasks by user and category
+    (status) [note: "Partial Index WHERE is_deleted = false"] // Accelerates filtering by status for active tasks
+    (importance) [note: "Partial Index WHERE is_deleted = false"] // Filtering by importance level
+    (due_date) [note: "Partial Index WHERE is_deleted = false"] // Optimizes search by due date
+    (sort_order) [note: "Partial Index WHERE is_deleted = false"] // Optimizes Drag & Drop sorting
+  }
+}
+
+// 📌 Category Table
+// Stores user-defined categories that help group tasks by meaning.
+Table Category {
+  id          SERIAL [primary key, note: "Unique identifier of the category (auto-increment)"]
+  user_id     UUID [ref: > users_user.id, not null, note: "Category owner. ON DELETE CASCADE"]
+  name        VARCHAR(50) [not null, note: "Category name (up to 50 characters)"]
+  description TEXT [null, note: "Additional category description"]
+  color       VARCHAR(7) [not null, note: "HEX color code of the category (#RRGGBB). Validation at the application level"]
+  sort_order  SMALLINT [not null, note: "Task position in the list (for Drag & Drop). Step 10. CHECK(sort_order >= 0)."]
+
+  // 🔍 Indexes for search optimization
+  Indexes {
+    (user_id, name) [unique, note: "Each category name is unique within a single user"]
+  }
+}
+
+// 📌 Tag Table
+// Stores user-defined tags for flexible task filtering.
+Table Tag {
+  id          SERIAL [primary key, note: "Unique identifier of the tag (auto-increment)"]
+  user_id     UUID [ref: > users_user.id, not null, note: "Tag owner. ON DELETE CASCADE"]
+  name        VARCHAR(50) [not null, note: "Tag name (up to 50 characters)"]
+  description TEXT [null, note: "Additional tag description"]
+  color       VARCHAR(7) [not null, note: "HEX color code of the tag (#RRGGBB). Validation at the application level"]
+
+  // 🔍 Indexes for search optimization
+  Indexes {
+    (user_id, name) [unique, note: "Each tag name is unique within a single user"]
+  }
+}
+
+// 📌 Task-Tag Junction Table
+// Establishes a many-to-many relationship between tasks and tags.
+Table TaskTag {
+  task_id UUID [ref: > Task.id, note: "Task to which the tag is attached. ON DELETE CASCADE"]
+  tag_id  INTEGER [ref: > Tag.id, note: "Tag associated with the task. ON DELETE CASCADE"]
+
+  // 🔍 Indexes to prevent duplicate tags for one task
+  Indexes {
+    (task_id, tag_id) [unique, note: "A task cannot contain the same tag twice"]
+  }
+}
+
+// 📌 Time Blocking Table
+// Defines time intervals for tasks in the calendar.
+Table TimeBlock {
+  id          SERIAL [primary key, note: "Unique identifier of the time block (auto-increment)"]
+  task_id     UUID [not null, ref: > Task.id, note: "Associated task. ON DELETE CASCADE"]
+  start_time  TIMESTAMPTZ [not null, note: "Date and time when work on the task starts"]
+  end_time    TIMESTAMPTZ [not null, note: "Date and time when work on the task ends"]
+}

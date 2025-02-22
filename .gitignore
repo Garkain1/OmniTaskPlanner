@@ -1,0 +1,49 @@
+# Python
+*.py[cod]
+__pycache__/
+*.sw[po]
+*.swo
+.DS_Store
+
+# Django
+*.sqlite3
+.env*
+!.env.example
+media/
+staticfiles/
+
+# PostgreSQL
+postgres_data/
+
+# Docker
+docker-compose.override.yml
+docker-data/
+*.pid
+
+# Virtualenv
+backend/venv/
+.envrc
+.venv/
+
+# Node.js / Frontend
+node_modules/
+package-lock.json
+yarn.lock
+dist/
+build/
+.cache/
+
+# VS Code / PyCharm / IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs / Debug / Temp
+*.log
+logs/
+tmp/
+debug.log
+
+# Git / Deployment
+*.bak
+*.orig
