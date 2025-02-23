@@ -1,0 +1,27 @@
+# [Type]: Brief description of changes
+
+# Detailed description:
+# - What was done?
+
+# Purpose:
+# - Why is this important?
+
+# Issue fixed:
+# - If fixing a bug, what was the issue?
+
+# Affected files and changes:
+# - Which files/systems are affected?
+
+# Related issues: #issue_number (if applicable)
+
+# ---
+
+### Allowed commit types:
+# - feat: Adding a new feature
+# - fix: Fixing a bug
+# - chore: Updates to dependencies, CI/CD configurations
+# - docs: Documentation updates
+# - test: Adding or updating tests
+# - refactor: Code improvements without functional changes
+# - perf: Performance optimizations
+# - style: Code style changes (formatting, linting)

@@ -1,0 +1,33 @@
+name: Check Branch Name
+
+on:
+  create:
+  push:
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get branch name
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Prevent deleting protected branches
+        run: |
+          if [[ "${{ env.BRANCH_NAME }}" =~ ^(main|develop|production|release/.*)$ ]]; then
+            echo "Branch '${{ env.BRANCH_NAME }}' cannot be deleted!"
+            exit 1
+          fi
+
+      - name: Validate branch name
+        run: |
+          if [[ ! "${{ env.BRANCH_NAME }}" =~ ^(feature|fix|hotfix|release|docs|test|ci)/[a-zA-Z0-9_-]+$ ]]; then
+            echo "Error: Branch '${{ env.BRANCH_NAME }}' does not follow the naming convention."
+            echo "Allowed prefixes: feature/, fix/, hotfix/, release/, docs/, test/, ci/"
+            echo "Delete the branch '${{ env.BRANCH_NAME }}'"
+            
+            curl -X DELETE -H "Authorization: token ${{ secrets.OTP_CLEANUP_TOKEN }}" \
+                 -H "Accept: application/vnd.github.v3+json" \
+                 "https://api.github.com/repos/${{ github.repository }}/git/refs/heads/${{ env.BRANCH_NAME }}"
+            exit 1
+          fi

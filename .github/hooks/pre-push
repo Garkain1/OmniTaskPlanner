@@ -1,0 +1,11 @@
+#!/bin/sh
+
+PATTERN="^(feature|fix|hotfix|release|docs|test|ci)/[a-zA-Z0-9_-]+$"
+
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+
+if ! grep -Eq "$PATTERN" <<< "$BRANCH_NAME"; then
+  echo "Error: Branch '$BRANCH_NAME' does not follow the naming convention."
+  echo "Allowed prefixes: feature/, fix/, hotfix/, release/, docs/, test/, ci/"
+  exit 1
+fi

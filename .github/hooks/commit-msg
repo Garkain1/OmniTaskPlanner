@@ -1,0 +1,11 @@
+#!/bin/sh
+
+PATTERN="^(feat|fix|chore|docs|test|refactor|perf|style): .+"
+
+COMMIT_MSG=$(cat "$1")
+
+if ! grep -Eq "$PATTERN" <<< "$COMMIT_MSG"; then
+  echo "Error: Invalid commit message!"
+  echo "Use allowed commit types"
+  exit 1
+fi
