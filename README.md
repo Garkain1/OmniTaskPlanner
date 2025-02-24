@@ -60,6 +60,7 @@ OmniTaskPlanner offers **a single database** to display tasks in different metho
 ## **Technical Solutions**  
 
 ### **Backend**  
+
 - **Django + Django REST Framework:**  
   API-first approach, custom user model, JWT authentication.  
 - **PostgreSQL:**  
@@ -68,12 +69,14 @@ OmniTaskPlanner offers **a single database** to display tasks in different metho
   Using Django Permissions (auth_group, auth_permission) for access management.  
 
 ### **Frontend**  
+
 - **Single Page Application (React/Vue.js):**  
   Interactive UI with Drag & Drop support in all views.  
 - **UI Optimization:**  
   Using `useState()`, `useMemo()`, and `useCallback()` for fast reactivity, local updates, and computed caching (e.g., RICE).  
 
 ### **DevOps and CI/CD**  
+
 - **Docker:**  
   Containerization of all components (backend, frontend, database, Nginx).  
 - **GitHub Actions:**  
@@ -86,6 +89,7 @@ OmniTaskPlanner offers **a single database** to display tasks in different metho
 ## **Project Architecture**  
 
 ### **Main Database Entities**  
+
 - **Task:**  
   - Supports parent tasks and subtasks (`parent_task_id`).  
   - Task parameters (importance, urgency, reach, confidence, effort).  
@@ -101,10 +105,12 @@ OmniTaskPlanner offers **a single database** to display tasks in different metho
   - Access management via a custom user model and standard Django Permissions.  
 
 ### **Task Visualization Methods**  
+
 - **To-Do List, Kanban Board, Eisenhower Matrix, MoSCoW, Time Blocking, GTD, RICE, Pomodoro**  
   Ability to switch between different views for flexible task planning and management.  
 
 ### **Task Ordering System**  
+
 - **sort_order:**  
   - Uses numerical values with a step of 10 for positioning.  
   - Automatic recalculation when the range overflows.  
@@ -141,7 +147,26 @@ More details on planned functionality can be found in [features.md](docs/planned
 
 ---
 
+## **Documentation**  
+
+The full documentation overview is available at [docs/OVERVIEW.md](docs/OVERVIEW.md).  
+
+---
+
+## **Git Workflow**
+
+We follow a structured Git workflow to maintain clarity and order in the repository.  
+
+- **Branch Naming** → Use prefixes like `feature/`, `fix/`, `hotfix/`, etc. ([Branch Guide](docs/developers/git-branches.md)).  
+- **Commit Format** → Follow the standard (`feat:`, `fix:`, `chore:`) ([Commit Guide](CONTRIBUTING.md)).  
+- **Git Hooks** → Automatically installed via `dev-setup.sh`, enforcing commit format and branch naming.  
+
+For more details, see [CONTRIBUTING.md](CONTRIBUTING.md).  
+
+---
+
 ## **License**  
+
 This project is distributed under the [CC BY-NC 4.0](LICENSE.md) license.  
 
 ---
@@ -208,6 +233,7 @@ OmniTaskPlanner verwendet **eine einzige Datenbank**, um Aufgaben in verschieden
 ## **Technische Lösungen**  
 
 ### **Backend**  
+
 - **Django + Django REST Framework:**  
   API-First-Ansatz, benutzerdefiniertes Benutzer-Modell, JWT-Authentifizierung.  
 - **PostgreSQL:**  
@@ -216,12 +242,14 @@ OmniTaskPlanner verwendet **eine einzige Datenbank**, um Aufgaben in verschieden
   Verwendung von Django-Berechtigungen (`auth_group`, `auth_permission`) zur Rechteverwaltung.  
 
 ### **Frontend**  
+
 - **Single Page Application (React/Vue.js):**  
   Interaktive Benutzeroberfläche mit Drag & Drop-Unterstützung in allen Ansichten.  
 - **Optimierung der UI:**  
   Nutzung von `useState()`, `useMemo()` und `useCallback()`, um schnelle Reaktionen auf Änderungen zu ermöglichen, lokale Updates zu unterstützen und Berechnungen (z. B. RICE) zu cachen.  
 
 ### **DevOps und CI/CD**  
+
 - **Docker:**  
   Containerisierung aller Komponenten (Backend, Frontend, Datenbank, Nginx).  
 - **GitHub Actions:**  
@@ -234,6 +262,7 @@ OmniTaskPlanner verwendet **eine einzige Datenbank**, um Aufgaben in verschieden
 ## **Projektarchitektur**  
 
 ### **Hauptentitäten der Datenbank**  
+
 - **Task (Aufgaben):**  
   - Unterstützung von übergeordneten Aufgaben und Unteraufgaben (`parent_task_id`).  
   - Aufgabenparameter (Wichtigkeit, Dringlichkeit, Reichweite, Vertrauen, Aufwand).  
@@ -249,10 +278,12 @@ OmniTaskPlanner verwendet **eine einzige Datenbank**, um Aufgaben in verschieden
   - Zugriffskontrolle über ein benutzerdefiniertes Modell und standardmäßige Django-Berechtigungen.  
 
 ### **Visualisierungsmodi für Aufgaben**  
+
 - **To-Do-Liste, Kanban-Board, Eisenhower-Matrix, MoSCoW, Time Blocking, GTD, RICE, Pomodoro**  
   Möglichkeit, zwischen verschiedenen Ansichten für eine flexible Aufgabenplanung und -verwaltung zu wechseln.  
 
 ### **Reihenfolgenverwaltung von Aufgaben**  
+
 - **sort_order:**  
   - Verwendung numerischer Werte mit einer Schrittweite von 10 zur Positionsbestimmung.  
   - Automatische Neuberechnung bei Überlauf des Wertebereichs.  
@@ -289,7 +320,26 @@ Detaillierte Informationen zu geplanten Funktionen finden Sie in [features.md](d
 
 ---
 
+## **Dokumentation**  
+
+Die vollständige Dokumentationsübersicht ist unter [docs/OVERVIEW.md](docs/OVERVIEW.md) verfügbar.
+
+---
+
+## **Git-Workflow**  
+
+Wir verwenden einen strukturierten Git-Workflow, um Klarheit und Ordnung im Repository zu gewährleisten.  
+
+- **Benennung von Branches** → Verwenden Sie Präfixe wie `feature/`, `fix/`, `hotfix/` usw. ([Branch-Leitfaden](docs/developers/git-branches.md)).  
+- **Commit-Format** → Halten Sie sich an den Standard (`feat:`, `fix:`, `chore:`) ([Commit-Leitfaden](CONTRIBUTING.md)).  
+- **Git Hooks** → Werden automatisch über `dev-setup.sh` installiert und erzwingen das Commit-Format sowie die Namensgebung der Branches.  
+
+Weitere Details finden Sie in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
 ## **Lizenz**  
+
 Dieses Projekt wird unter der [CC BY-NC 4.0](LICENSE.md)-Lizenz veröffentlicht.  
 
 ---
@@ -299,7 +349,7 @@ Dieses Projekt wird unter der [CC BY-NC 4.0](LICENSE.md)-Lizenz veröffentlicht.
 
 ---
 
-# <span id="russian">OmniTaskPlanner</span> 
+# <span id="russian">**OmniTaskPlanner**</span> 
 
 **OmniTaskPlanner** – это концепция гибкого планировщика задач, позволяющая визуализировать одни и те же задачи в различных методологиях управления временем и приоритетами, таких как:
 
@@ -315,7 +365,7 @@ Dieses Projekt wird unter der [CC BY-NC 4.0](LICENSE.md)-Lizenz veröffentlicht.
 
 ---
 
-## Описание проекта
+## **Описание проекта**
 
 OmniTaskPlanner предлагает **одну базу данных** для отображения задач по разным методологиям без их дублирования. Проект нацелен на:
 - Гибкую настройку параметров задач (важность, срочность, охват, уверенность, усилия)
@@ -324,7 +374,7 @@ OmniTaskPlanner предлагает **одну базу данных** для �
 
 ---
 
-## Основные возможности (запланированные)
+## **Основные возможности (запланированные)**
 
 - **Единая база данных для различных представлений:**
   - Отображение задач в формате To-Do, Канбан, Матрицы Эйзенхауэра, MoSCoW, Time Blocking, GTD, RICE и Pomodoro.
@@ -352,9 +402,10 @@ OmniTaskPlanner предлагает **одну базу данных** для �
 
 ---
 
-## Технические решения
+## **Технические решения**
 
-### Бэкенд
+### **Бэкенд**
+
 - **Django + Django REST Framework:**  
   API-first подход, кастомная модель пользователя, JWT-аутентификация.
 - **PostgreSQL:**  
@@ -362,13 +413,15 @@ OmniTaskPlanner предлагает **одну базу данных** для �
 - **Система прав доступа:**  
   Использование стандартных Django Permissions (auth_group, auth_permission) для управления доступом.
 
-### Фронтенд
+### **Фронтенд**
+
 - **Single Page Application (React/Vue.js):**  
   Интерактивный интерфейс с поддержкой Drag & Drop во всех представлениях.
 - **Оптимизация UI:**  
   Использование `useState()`, `useMemo()` и `useCallback()` для быстрой реакции на изменения, локальное обновление данных и кеширование вычислений (например, RICE).
 
-### DevOps и CI/CD
+### **DevOps и CI/CD**
+
 - **Docker:**  
   Контейнеризация всех компонентов (бэкенд, фронтенд, база данных, Nginx).
 - **GitHub Actions:**  
@@ -378,9 +431,10 @@ OmniTaskPlanner предлагает **одну базу данных** для �
 
 ---
 
-## Архитектура проекта
+## **Архитектура проекта**
 
-### Основные сущности базы данных
+### **Основные сущности базы данных**
+
 - **Task (Задачи):**  
   - Поддержка родительских задач и подзадач (`parent_task_id`).
   - Параметры задач (importance, urgency, reach, confidence, effort).
@@ -395,18 +449,20 @@ OmniTaskPlanner предлагает **одну базу данных** для �
 - **Пользователи и роли:**  
   - Разграничение доступа через кастомную модель пользователя и стандартные Django Permissions.
 
-### Методы визуализации задач
+### **Методы визуализации задач**
+
 - **To-Do список, Канбан-доска, Матрица Эйзенхауэра, MoSCoW, Time Blocking, GTD, RICE, Pomodoro**  
   Возможность переключения между разными представлениями для удобства планирования и управления.
 
-### Управление порядком задач
+### **Управление порядком задач**
+
 - **sort_order:**  
   - Использование числового значения с шагом 10 для определения позиции.
   - Автоматический перерасчет при переполнении диапазона значений.
 
 ---
 
-## Примеры использования
+## **Примеры использования**
 
 1. **Личный планировщик задач:**
    - Переключение между представлениями To-Do, Канбан и Матрицы Эйзенхауэра.
@@ -422,7 +478,7 @@ OmniTaskPlanner предлагает **одну базу данных** для �
 
 ---
 
-## Планы развития и запланированные фичи
+## **Планы развития и запланированные фичи**
 
 Подробнее о запланированном функционале можно прочитать в [features.md](docs/planned/features.md).
 
@@ -436,8 +492,26 @@ OmniTaskPlanner предлагает **одну базу данных** для �
 
 ---
 
+## **Документация**
 
-## Лицензия
+Полный обзор документации доступен в [docs/OVERVIEW.md](docs/OVERVIEW.md).
+
+---
+
+## **Git Workflow**
+
+Мы используем структурированный Git workflow для поддержания чистоты и порядка в репозитории.
+
+- **Именование веток** → Используйте `feature/`, `fix/`, `hotfix/` и другие префиксы ([Руководство по веткам](docs/developers/git-branches.md)).
+- **Формат коммитов** → Соблюдайте стандарт (`feat:`, `fix:`, `chore:`) ([Гайд по коммитам](CONTRIBUTING.md)).
+- **Git Hooks** → Автоматически устанавливаются через `dev-setup.sh`, проверяют формат коммитов и названия веток.
+
+Подробнее смотрите в [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## **Лицензия**
+
 Этот проект распространяется под лицензией [CC BY-NC 4.0](LICENSE.md).
 
 ---
